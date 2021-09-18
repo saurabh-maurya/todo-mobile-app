@@ -1,2 +1,2 @@
 # todo-mobile-app
-react native forntend
+react native frontend
