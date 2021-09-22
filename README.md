@@ -1,2 +1,2 @@
 # todo-mobile-app
-react native frontend
+This app is developed using react native and expo
