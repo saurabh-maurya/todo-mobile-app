@@ -1,29 +1,52 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { FlatList, StyleSheet, Text, View, Alert, TouchableWithoutFeedback, Keyboard, TouchableWithoutFeedbackBase  } from 'react-native';
 import AddTodos from './components/AddTodos';
 import Header from './components/Header';
 import TodoItem from './components/TodoItem';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
-  const [ todos, setTodos ] = useState([
-    { text: "Buy Coffee", key: '1' },
-    { text: "Buy Shoes", key: '2' },
-    { text: "Meet Al at Schhol", key: '3' }
-  ])
+  const [ todos, setTodos ] = useState([])
+
+  useEffect(() => readData(), [])
+
+  const saveData = async (todoData) => {
+    try {
+      await AsyncStorage.setItem('todo_data', todoData)
+      console.log("data added successfully")
+    } catch (e) {
+      console.log('Failed to save the data to the storage')
+    }
+  }
+
+  const readData = async () => {
+    try {
+      const todoData = await AsyncStorage.getItem('todo_data')
+      if (todoData !== null) {
+        setTodos(JSON.parse(todoData))
+      }
+      return ;
+    } catch (e) {
+      console.log('Failed to fetch the data from storage')
+    }
+  }
 
   const onPressHandler = (key) => {
     setTodos((prevTodos) => {
-      return prevTodos.filter(todo => todo.key != key)
+      let filteredData =  prevTodos.filter(todo => todo.key != key);
+      saveData(JSON.stringify(filteredData));
+      return filteredData;
+
     })
   }
-  const addItemInList = (newTodo) => {
 
+
+  const addItemInList = (newTodo) => {
     if(newTodo.length > 3){
       setTodos((prevTodos) => {
-        return [
-          {text: newTodo, key: Math.random().toString()},
-          ...prevTodos
-        ]
+        let addedTodos = [ {text: newTodo, key: Math.random().toString()}, ...prevTodos ]
+        saveData(JSON.stringify(addedTodos))
+        return addedTodos;
       })
     } else {
       Alert.alert('OOPS!', 'Todos must be greater than 3 char', [
@@ -32,6 +55,8 @@ export default function App() {
     }
     
   }
+
+
   return (
     <TouchableWithoutFeedback onPress = {() => {
       Keyboard.dismiss();
